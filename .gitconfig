@@ -1,0 +1,30 @@
+[user]
+        email = daniel@pelanor.io
+        name = Daniel Kleinstein
+[color]
+        ui = auto
+[core]
+        pager = less -FMRiX
+[push]
+        default = simple
+[alias]
+# https://chat.openai.com/share/36f522c0-16d6-481a-a6d3-d6a0a3d0c158
+        dag = log --graph --format='format:%C(yellow)%h%C(reset) %C(blue)\"%an\" <%ae>%C(reset) %C(magenta)%cr%C(reset)%C(auto)%d%C(reset)%n%s' --date-order
+        st = status -s
+	lol = log --graph --decorate --pretty=oneline --abbrev-commit
+	lols = log --oneline
+	rl = reflog --pretty=reflog
+	aliases = config --get-regexp '^alias.'
+	wip = !git add . && git commit -m 'fixup! WIP' --no-verify
+	unwip = !git log -n 2 --pretty=%H | tail -1 | xargs git reset --soft
+	browse = !open $(git config --get remote.origin.url)
+	standup = log --since='1 day ago' --oneline --pretty=format:'%h %<(7)%an %s'
+	pub = !git push -u origin $(git symbolic-ref --short HEAD)
+	pop = !git checkout -
+	stash-file = "!f() { file=$(find . -path ./.git -prune -o -path \"*${1}*\" -print); if [ -z \"$file\" ]; then echo \"File not found\" && exit 1; else git stash push $file; fi }; f"
+
+[credential]
+	helper = cache --timeout=360000
+
+[pretty]
+	reflog = %C(auto)%h %<|(20) %C(blue)%cr%C(reset) %gs (%s)
