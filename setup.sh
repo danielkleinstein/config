@@ -18,6 +18,12 @@ fi
 echo -e "${GREEN}Updating apt-get repositories...${NC}"
 apt-get update -y > /dev/null
 
+echo -e "${GREEN}Installing apt-utils...${NC}"
+apt-get install apt-utils -y > /dev/null 2>&1
+
+echo -e "${GREEN}Installing dialog...${NC}"
+apt-get install dialog -y > /dev/null 2>&1
+
 echo -en "${GREEN}Installing fish shell...${NC}"
 apt-get install fish -y > /dev/null
 
