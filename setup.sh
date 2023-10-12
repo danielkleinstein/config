@@ -38,7 +38,7 @@ echo -e " ${GREEN}Fish shell is now installed and set as the default shell for $
 UTILITIES=("python3" "python3-pip" "curl" "unzip" "golang" "vim")
 for utility in "${UTILITIES[@]}"; do
     echo -e "${GREEN}Installing $utility...${NC}"
-    apt-get install $utility -y > /dev/null
+    apt-get install $utility -y > /dev/null 2>&1
 done
 
 echo -e "${GREEN}Installing AWS CLI...${NC}"

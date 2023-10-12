@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Define colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
 SCRIPT_DIR="$(realpath "$(dirname "$0")")"
 cd $SCRIPT_DIR
 
@@ -23,6 +28,7 @@ if [ "$EUID" -eq 0 ] && [ "$OVERRIDE_SUDO_CHECK" = false ]; then
   exit 1
 fi
 
-pip3 install virtualenv
+echo -e "${GREEN}Installing virtualenv...${NC}"
+pip3 install virtualenv > /dev/null 2>&1
 
 cp -r $SCRIPT_DIR/home_folder/. $HOME/
