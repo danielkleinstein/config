@@ -173,4 +173,8 @@ set -x LESS_TERMCAP_ue (printf "\033[0m")
 set -x LESS_TERMCAP_us (printf "\033[01;32m")
 
 alias k=kubectl
+alias kns="kubectl config set-context --current --namespace"
+alias kp="kubectl get pods"
+alias kp-nodes="kubectl get pod -o=custom-columns=NODE:.spec.nodeName,NAME:.metadata.name"
+alias kl="kubectl logs"
 complete -c kubectl -a "(kubectl completion fish | sed 's/-F/_/g')"
