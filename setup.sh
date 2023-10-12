@@ -41,6 +41,12 @@ for utility in "${UTILITIES[@]}"; do
     apt-get install $utility -y > /dev/null 2>&1
 done
 
+# Install afer utils - because it needs curl
+echo -en "${GREEN}Installing oh my fish...${NC}"
+curl https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install > omf-install 2>/dev/null
+fish omf-install --path=~/.local/share/omf --config=~/.config/omf --noninteractive > /dev/null
+rm omf-install
+
 echo -e "${GREEN}Installing AWS CLI...${NC}"
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" > /dev/null 2>&1
 unzip awscliv2.zip > /dev/null

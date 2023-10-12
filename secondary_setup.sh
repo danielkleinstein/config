@@ -28,7 +28,7 @@ if [ "$EUID" -eq 0 ] && [ "$OVERRIDE_SUDO_CHECK" = false ]; then
   exit 1
 fi
 
-echo -e "${GREEN}Installing virtualenv...${NC}"
+echo -e "${RED}Installing virtualenv...${NC}"
 pip3 install virtualenv > /dev/null 2>&1
 
 cp -r $SCRIPT_DIR/home_folder/. $HOME/
