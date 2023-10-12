@@ -7,9 +7,6 @@ fish_add_path -aP ~/scripts
 fish_add_path ~/.local/bin
 fish_add_path -aP /usr/sbin
 fish_add_path -aP ~/.cargo/bin
-fish_add_path "/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
-fish_add_path /opt/homebrew/opt/openjdk/bin
-fish_add_path /Users/danielkleinstein/bin
 
 function save_output
     set -l output_file /tmp/last_command_output
@@ -174,18 +171,6 @@ set -x LESS_TERMCAP_se (printf "\033[0m")
 set -x LESS_TERMCAP_so (printf "\033[01;44;33m")
 set -x LESS_TERMCAP_ue (printf "\033[0m")
 set -x LESS_TERMCAP_us (printf "\033[01;32m")
-
-if status --is-interactive
-  eval (/opt/homebrew/bin/brew shellenv)
-end
-
-[ -f /opt/homebrew/share/autojump/autojump.fish ]; and source /opt/homebrew/share/autojump/autojump.fish
-
-if [ -z "$TMUX" ]
-	#tmux a -t main
-end
-
-source ~/.iterm2_shell_integration.fish
 
 alias k=kubectl
 complete -c kubectl -a "(kubectl completion fish | sed 's/-F/_/g')"
