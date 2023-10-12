@@ -1,5 +1,10 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(realpath "$(dirname "$0")")"
+cd $SCRIPT_DIR
+
+USER=${USER:-$(id -un)}
+
 for arg in "$@"; do
   case $arg in
     --override-sudo-check)
@@ -20,13 +25,4 @@ fi
 
 pip3 install virtualenv
 
-# Fish AWS CLI autocomplete
-mkdir -p /home/ec2-user/fish/completions
-cat > /home/ec2-user/.config/fish/completions/aws.fish <<EOL
-function __fish_complete_aws
-    env COMP_LINE=(commandline -pc) aws_completer | tr -d ' '
-end
-
-complete -c aws -f -a "(__fish_complete_aws)"
-EOL
-
+cp -r $SCRIPT_DIR/home_folder/. $HOME/

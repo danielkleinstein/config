@@ -1,5 +1,5 @@
 [user]
-        email = daniel@pelanor.io
+        email = danielkleinstein@gmail.com
         name = Daniel Kleinstein
 [color]
         ui = auto
@@ -8,9 +8,8 @@
 [push]
         default = simple
 [alias]
-# https://chat.openai.com/share/36f522c0-16d6-481a-a6d3-d6a0a3d0c158
-        dag = log --graph --format='format:%C(yellow)%h%C(reset) %C(blue)\"%an\" <%ae>%C(reset) %C(magenta)%cr%C(reset)%C(auto)%d%C(reset)%n%s' --date-order
-        st = status -s
+	dag = log --graph --format='format:%C(yellow)%h%C(reset) %C(blue)\"%an\" <%ae>%C(reset) %C(magenta)%cr%C(reset)%C(auto)%d%C(reset)%n%s' --date-order
+	st = status -s
 	lol = log --graph --decorate --pretty=oneline --abbrev-commit
 	lols = log --oneline
 	rl = reflog --pretty=reflog

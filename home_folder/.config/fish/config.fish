@@ -187,3 +187,5 @@ end
 
 source ~/.iterm2_shell_integration.fish
 
+alias k=kubectl
+complete -c kubectl -a "(kubectl completion fish | sed 's/-F/_/g')"

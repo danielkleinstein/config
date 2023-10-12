@@ -2,6 +2,8 @@
 
 SCRIPT_DIR="$(realpath "$(dirname "$0")")"
 
+cd $SCRIPT_DIR
+
 # Use SUDO_USER if available, otherwise default to current user.
 # Fun fact - $USER is unavailable in Ubuntu slim containers.
 ORIGINAL_USER=${SUDO_USER:-$(id -un)}
@@ -22,7 +24,7 @@ chsh -s /usr/bin/fish $ORIGINAL_USER
 
 echo "Fish shell is now installed and set as the default shell for $ORIGINAL_USER."
 
-apt install python3 python3-pip curl unzip golang -y
+apt install python3 python3-pip curl unzip golang vim -y
 
 # Install AWS CLI
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
