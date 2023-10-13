@@ -53,6 +53,11 @@ unzip awscliv2.zip > /dev/null
 ./aws/install > /dev/null
 rm -rf aws*
 
+echo -e "${GREEN}Installing kubectl...${NC}"
+curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl" > /dev/null 2>&1
+chmod +x ./kubectl
+mv ./kubectl /usr/local/bin/kubectl
+
 echo -e "${GREEN}Installing eksctl...${NC}"
 ARCH=amd64
 PLATFORM=$(uname -s)_$ARCH
