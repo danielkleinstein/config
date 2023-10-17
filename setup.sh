@@ -42,7 +42,7 @@ for utility in "${UTILITIES[@]}"; do
 done
 
 # Install afer utils - because it needs curl
-echo -en "${GREEN}Installing oh my fish...${NC}"
+echo -e "${GREEN}Installing oh my fish...${NC}"
 curl https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install > omf-install 2>/dev/null
 fish omf-install --path=~/.local/share/omf --config=~/.config/omf --noninteractive > /dev/null
 rm omf-install
