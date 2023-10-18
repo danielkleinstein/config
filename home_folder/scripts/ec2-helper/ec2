@@ -5,10 +5,10 @@ import boto3
 import os
 import sys
 
-from terraform_manager.instance_configuration import instance_configuration
 from terraform_manager.manager_connect import connect_instance_configuration_folder
 from terraform_manager.manager_create import create_instance_configuration_folder
 from terraform_manager.manager_destroy import destroy_instance_configuration_folder
+from terraform_manager.manager_list import list_instance_configuration_folder
 
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -23,9 +23,8 @@ def aws_account_id() -> str:
 
 def create(args):
     name = args.name
-    instance_config = instance_configuration()
     account_id = aws_account_id()
-    create_instance_configuration_folder(name, account_id, instance_config)
+    create_instance_configuration_folder(name, account_id)
 
 
 def connect(args):
@@ -33,8 +32,8 @@ def connect(args):
     connect_instance_configuration_folder(name)
 
 
-def list_configs(args):
-    pass
+def list_configs(_):
+    list_instance_configuration_folder()
 
 
 def destroy(args):

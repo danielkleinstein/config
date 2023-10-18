@@ -12,7 +12,6 @@ if command -v apt > /dev/null 2>&1; then
     PACKAGE_MANAGER="apt-get"
 elif command -v yum > /dev/null 2>&1; then
     PACKAGE_MANAGER="yum"
-    yum install -y coreutils util-linux-user
 
     pushd /etc/yum.repos.d/
     wget --no-check-certificate https://download.opensuse.org/repositories/shells:fish:release:3/CentOS_7/shells:fish:release:3.repo
@@ -32,6 +31,12 @@ $PACKAGE_MANAGER update -y > /dev/null
 
 echo -e "${GREEN}Installing apt-utils...${NC}"
 $PACKAGE_MANAGER install apt-utils -y > /dev/null 2>&1
+
+echo -e "${GREEN}Installing coreutils...${NC}"
+$PACKAGE_MANAGER install coreutils -y > /dev/null 2>&1
+
+echo -e "${GREEN}Installing yum-utils...${NC}"
+$PACKAGE_MANAGER install yum-utils -y > /dev/null 2>&1
 
 echo -e "${GREEN}Installing dialog...${NC}"
 $PACKAGE_MANAGER install dialog -y > /dev/null 2>&1

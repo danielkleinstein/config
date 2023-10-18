@@ -5,7 +5,7 @@ import subprocess  # nosec (remove bandit warning)
 import sys
 import time
 
-from terraform_manager.instance_configuration import InstanceConfiguration
+from terraform_manager.instance_configuration import InstanceConfiguration, instance_configuration
 from terraform_manager.manager_base import base_path, manager_path
 from terraform_manager.manager_connect import connect_instance_configuration_folder
 
@@ -47,7 +47,7 @@ def _create_config_folder(instance_path: str, instance_config: InstanceConfigura
         distro_file.write(instance_config.distro.name)
 
     # Create config/instance_type based on instance_config
-    with open(os.path.join(config_dir, 'instance_type'), 'w', encoding='utf-8') as instance_type_file:
+    with open(os.path.join(config_dir, 'instance-type'), 'w', encoding='utf-8') as instance_type_file:
         instance_type_file.write(instance_config.instance_type)
 
     # Create config/region based on instance_config
@@ -58,17 +58,19 @@ def _create_config_folder(instance_path: str, instance_config: InstanceConfigura
     with open(os.path.join(config_dir, 'ami-id'), 'w', encoding='utf-8') as instance_type_file:
         instance_type_file.write(instance_config.ami)
 
-    # Create config/creation_date based on the current date
-    with open(os.path.join(config_dir, 'creation_date'), 'w', encoding='utf-8') as date_file:
+    # Create config/creation_time based on the current date
+    with open(os.path.join(config_dir, 'creation_time'), 'w', encoding='utf-8') as date_file:
         date_file.write(time.strftime('%Y-%m-%d %H:%M:%S'))
 
 
-def create_instance_configuration_folder(name: str, aws_account_id: str, instance_config: InstanceConfiguration):
+def create_instance_configuration_folder(name: str, aws_account_id: str):
     """Create a folder for the given instance configuration."""
     instance_path = os.path.join(manager_path(), f'ec2-{name}')
 
     if os.path.exists(instance_path):
         raise ValueError(f"Folder '{instance_path}' already exists.")
+
+    instance_config = instance_configuration()
 
     os.makedirs(instance_path)
 
