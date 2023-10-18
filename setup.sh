@@ -12,6 +12,11 @@ if command -v apt > /dev/null 2>&1; then
     PACKAGE_MANAGER="apt-get"
 elif command -v yum > /dev/null 2>&1; then
     PACKAGE_MANAGER="yum"
+    yum install -y coreutils util-linux-user
+
+    pushd /etc/yum.repos.d/
+    wget --no-check-certificate https://download.opensuse.org/repositories/shells:fish:release:3/CentOS_7/shells:fish:release:3.repo
+    popd
 else
     echo "Neither apt nor yum found. Exiting..."
     exit 1
@@ -47,7 +52,7 @@ fi
 
 echo -e " ${GREEN}Fish shell is now installed and set as the default shell for $ORIGINAL_USER.${NC}"
 
-UTILITIES=("python3" "python3-pip" "curl" "unzip" "golang" "vim")
+UTILITIES=("python3" "python3-pip" "curl" "unzip" "golang" "vim" "tmux")
 for utility in "${UTILITIES[@]}"; do
     echo -e "${GREEN}Installing $utility...${NC}"
     $PACKAGE_MANAGER install $utility -y > /dev/null 2>&1
