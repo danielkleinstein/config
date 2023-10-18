@@ -1,7 +1,16 @@
 """Encapsulates logic for retrieving user configuration of an EC2 instance."""
+from typing import Tuple
 import boto3
 import dataclasses
+import enum
 import subprocess  # nosec (remove bandit warning)
+
+
+class LinuxDistro(enum.Enum):
+    """Represents a Linux distribution."""
+
+    AMAZON_LINUX = enum.auto()
+    UBUNTU = enum.auto()
 
 
 @dataclasses.dataclass
@@ -11,6 +20,7 @@ class InstanceConfiguration:
     region: str
     ami: str
     instance_type: str
+    distro: LinuxDistro
 
 
 def _fzf_select(options, header=""):
@@ -33,7 +43,7 @@ def _instance_configuration_region(ec2_client) -> str:
     return selected_region
 
 
-def _instance_configuration_ami(ec2_client) -> str:
+def _instance_configuration_ami(ec2_client) -> Tuple[str, LinuxDistro]:
     # Get the Amazon Linux AMI
     response = ec2_client.describe_images(
         Owners=['amazon'],
@@ -53,9 +63,16 @@ def _instance_configuration_ami(ec2_client) -> str:
 
     ami_options = [f'Amazon Linux AMI: {amazon_linux_ami}', f'Ubuntu AMI: {ubuntu_ami}']
     chosen_ami_desc = _fzf_select(ami_options)
+    if 'Amazon Linux' in chosen_ami_desc:
+        distro = LinuxDistro.AMAZON_LINUX
+    elif 'Ubuntu' in chosen_ami_desc:
+        distro = LinuxDistro.UBUNTU
+    else:
+        raise ValueError(f'Unexpected AMI description: {chosen_ami_desc}')
+
     chosen_ami = chosen_ami_desc.rsplit(':', maxsplit=1)[-1].strip()
 
-    return chosen_ami
+    return (chosen_ami, distro)
 
 
 def _instance_configuration_instance_type(ec2_client) -> str:
@@ -82,7 +99,7 @@ def instance_configuration() -> InstanceConfiguration:
     region = _instance_configuration_region(ec2_client)
     ec2_client_in_region = session.client('ec2', region_name=region)
 
-    ami = _instance_configuration_ami(ec2_client_in_region)
+    ami, distro = _instance_configuration_ami(ec2_client_in_region)
     chosen_instance = _instance_configuration_instance_type(ec2_client_in_region)
 
-    return InstanceConfiguration(region=region, ami=ami, instance_type=chosen_instance)
+    return InstanceConfiguration(region=region, ami=ami, instance_type=chosen_instance, distro=distro)
