@@ -38,14 +38,14 @@ def create_instance_configuration_folder(name: str, aws_account_id: str, instanc
         _, stderr = process.communicate()
         if process.returncode != 0:
             sys.stderr.write(stderr.decode('utf-8'))
-            raise ValueError(f"terraform init failed in '{instance_path}'.")
+            raise ValueError(f'terraform init failed in "{instance_path}".')
 
     with subprocess.Popen(['terraform', 'apply', '-auto-approve'],  # nosec (remove bandit warning)
                           cwd=instance_path, stdout=subprocess.PIPE) as process:
         _, stderr = process.communicate()
         if process.returncode != 0:
             sys.stderr.write(stderr.decode('utf-8'))
-            raise ValueError(f"terraform init failed in '{instance_path}'.")
+            raise ValueError(f'terraform apply failed in "{instance_path}".')
 
     # Create config folder if it doesn't exist
     config_dir = os.path.join(instance_path, 'config')
@@ -59,7 +59,7 @@ def create_instance_configuration_folder(name: str, aws_account_id: str, instanc
             stdout, stderr = process.communicate()
             if process.returncode != 0:
                 sys.stderr.write(stderr.decode('utf-8'))
-                raise ValueError(f"terraform init failed in '{instance_path}'.")
+                raise ValueError(f'terraform init failed in "{instance_path}".')
 
         key_name = stdout.decode('utf-8').strip().strip('"')
 
@@ -75,7 +75,7 @@ def create_instance_configuration_folder(name: str, aws_account_id: str, instanc
             stdout, stderr = process.communicate()
             if process.returncode != 0:
                 sys.stderr.write(stderr.decode('utf-8'))
-                raise ValueError(f"terraform init failed in '{instance_path}'.")
+                raise ValueError(f'terraform output failed in "{instance_path}".')
         ip_file.write(stdout.decode('utf-8').strip().strip('"'))
 
     time.sleep(10)
