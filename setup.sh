@@ -17,9 +17,6 @@ else
     exit 1
 fi
 
-# Use SUDO_USER if available, otherwise default to current user.
-ORIGINAL_USER=${SUDO_USER:-$(id -un)}
-
 if [[ $EUID -ne 0 ]]; then
    echo -e "${RED}This script must be run as root using sudo.${NC}"
    exit 1
@@ -84,13 +81,33 @@ curl -Lo aws-iam-authenticator https://github.com/kubernetes-sigs/aws-iam-authen
 chmod +x ./aws-iam-authenticator
 mv ./aws-iam-authenticator /usr/local/bin/
 
+# Use SUDO_USER if available, otherwise default to current user.
+ORIGINAL_USER=${SUDO_USER:-$(id -un)}
+SKIP_OVERRIDE_FLAG_CHECK=false
+
+if [ -z $SUDO_USER]; then
+    # Support user data scripts in EC2 Amazon Linux/Ubuntu instances
+    if id "ec2-user" &>/dev/null; then
+        ORIGINAL_USER="ec2-user"
+        SKIP_OVERRIDE_FLAG_CHECK=true
+    elif id "ubuntu" &>/dev/null; then
+        ORIGINAL_USER="ubuntu"
+        SKIP_OVERRIDE_FLAG_CHECK=true
+    fi
+fi
+
 # Set the flag if SUDO_USER is unavailable
-[[ -z "$SUDO_USER" ]] && OVERRIDE_FLAG="--override-sudo-check" || OVERRIDE_FLAG=""
+if [[ -z "$SUDO_USER" ]] && [[ "$SKIP_OVERRIDE_FLAG_CHECK" == "false" ]]; then
+    OVERRIDE_FLAG="--override-sudo-check"
+else
+    OVERRIDE_FLAG=""
+fi
 
 echo -e "${GREEN}Running secondary setup script...${NC}"
 if [ -n "$OVERRIDE_FLAG" ]; then
     echo -e "${RED}Running secondary setup script with override flag...${NC}"
 fi
+
 su - $ORIGINAL_USER -c "$SCRIPT_DIR/secondary_setup.sh $OVERRIDE_FLAG"
 
 echo -e "${GREEN}All tasks completed!${NC}"

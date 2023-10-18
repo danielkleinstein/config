@@ -28,7 +28,7 @@ if [ "$EUID" -eq 0 ] && [ "$OVERRIDE_SUDO_CHECK" = false ]; then
   exit 1
 fi
 
-PYTHON_PACKAGES=("virtualenv" "requests")
+PYTHON_PACKAGES=("virtualenv" "requests" "boto3")
 for package in "${PYTHON_PACKAGES[@]}"; do
     echo -e "${RED}Installing $package...${NC}"
     pip3 install $package > /dev/null 2>&1
