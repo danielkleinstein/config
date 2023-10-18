@@ -1,0 +1,1 @@
+This inner `archive/archive` directory is necessary because we don't want archived scripts in the PATH, but all files at depth 1 relative to scripts are placed in the path.

@@ -4,6 +4,12 @@ end
 
 alias .. "pushd .."
 fish_add_path -aP ~/scripts
+fish_add_path -aP ~/scripts
+for dir in ~/scripts/*
+    if test -d $dir
+        fish_add_path -aP $dir
+    end
+end
 fish_add_path ~/.local/bin
 fish_add_path -aP /usr/sbin
 fish_add_path -aP ~/.cargo/bin
@@ -177,4 +183,11 @@ alias kns="kubectl config set-context --current --namespace"
 alias kp="kubectl get pods"
 alias kp-nodes="kubectl get pod -o=custom-columns=NODE:.spec.nodeName,NAME:.metadata.name"
 alias kl="kubectl logs"
+
+alias ti="terraform init"
+alias ta="terraform apply"
+alias taa="terraform apply -auto-approve"
+alias td="terraform destroy"
+alias tdd="terraform destroy -auto-approve"
+
 complete -c kubectl -a "(kubectl completion fish | sed 's/-F/_/g')"
