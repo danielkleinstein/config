@@ -6,6 +6,16 @@ GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
 SCRIPT_DIR="$(realpath "$(dirname "$0")")"
+cd $SCRIPT_DIR
+
+if command -v apt > /dev/null 2>&1; then
+    PACKAGE_MANAGER="apt-get"
+elif command -v yum > /dev/null 2>&1; then
+    PACKAGE_MANAGER="yum"
+else
+    echo "Neither apt nor yum found. Exiting..."
+    exit 1
+fi
 
 # Use SUDO_USER if available, otherwise default to current user.
 ORIGINAL_USER=${SUDO_USER:-$(id -un)}
@@ -15,30 +25,35 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-echo -e "${GREEN}Updating apt-get repositories...${NC}"
-apt-get update -y > /dev/null
+echo -e "${GREEN}Updating $PACKAGE_MANAGER repositories...${NC}"
+$PACKAGE_MANAGER update -y > /dev/null
 
 echo -e "${GREEN}Installing apt-utils...${NC}"
-apt-get install apt-utils -y > /dev/null 2>&1
+$PACKAGE_MANAGER install apt-utils -y > /dev/null 2>&1
 
 echo -e "${GREEN}Installing dialog...${NC}"
-apt-get install dialog -y > /dev/null 2>&1
+$PACKAGE_MANAGER install dialog -y > /dev/null 2>&1
 
 echo -en "${GREEN}Installing fish shell...${NC}"
-apt-get install fish -y > /dev/null
+$PACKAGE_MANAGER install fish -y > /dev/null
 
 if ! grep -q "^/usr/bin/fish$" /etc/shells; then
     echo "/usr/bin/fish" | sudo tee -a /etc/shells
 fi
 
 chsh -s /usr/bin/fish $ORIGINAL_USER
+if id "ec2-user" &>/dev/null; then
+    chsh -s /usr/bin/fish "ec2-user"
+elif id "ubuntu" &>/dev/null; then
+    chsh -s /usr/bin/fish "ubuntu"
+fi
 
 echo -e " ${GREEN}Fish shell is now installed and set as the default shell for $ORIGINAL_USER.${NC}"
 
 UTILITIES=("python3" "python3-pip" "curl" "unzip" "golang" "vim")
 for utility in "${UTILITIES[@]}"; do
     echo -e "${GREEN}Installing $utility...${NC}"
-    apt-get install $utility -y > /dev/null 2>&1
+    $PACKAGE_MANAGER install $utility -y > /dev/null 2>&1
 done
 
 # Install afer utils - because it needs curl
@@ -73,6 +88,9 @@ mv ./aws-iam-authenticator /usr/local/bin/
 [[ -z "$SUDO_USER" ]] && OVERRIDE_FLAG="--override-sudo-check" || OVERRIDE_FLAG=""
 
 echo -e "${GREEN}Running secondary setup script...${NC}"
+if [ -n "$OVERRIDE_FLAG" ]; then
+    echo -e "${RED}Running secondary setup script with override flag...${NC}"
+fi
 su - $ORIGINAL_USER -c "$SCRIPT_DIR/secondary_setup.sh $OVERRIDE_FLAG"
 
 echo -e "${GREEN}All tasks completed!${NC}"
