@@ -4,6 +4,7 @@ import shutil
 import subprocess  # nosec (remove bandit warning)
 import sys
 import time
+from typing import Optional
 
 from terraform_manager.instance_configuration import InstanceConfiguration, instance_configuration
 from terraform_manager.manager_base import base_path, manager_path
@@ -63,14 +64,18 @@ def _create_config_folder(instance_path: str, instance_config: InstanceConfigura
         date_file.write(time.strftime('%Y-%m-%d %H:%M:%S'))
 
 
-def create_instance_configuration_folder(name: str, aws_account_id: str):
+def create_instance_configuration_folder(name: str,
+                                         aws_account_id: str,
+                                         region: Optional[str] = None,
+                                         distro: Optional[str] = None,
+                                         instance_type: Optional[str] = None):
     """Create a folder for the given instance configuration."""
     instance_path = os.path.join(manager_path(), f'ec2-{name}')
 
     if os.path.exists(instance_path):
         raise ValueError(f"Folder '{instance_path}' already exists.")
 
-    instance_config = instance_configuration()
+    instance_config = instance_configuration(region, distro, instance_type)
 
     os.makedirs(instance_path)
 

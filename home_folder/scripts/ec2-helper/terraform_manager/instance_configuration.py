@@ -1,5 +1,5 @@
 """Encapsulates logic for retrieving user configuration of an EC2 instance."""
-from typing import Tuple
+from typing import Optional, Tuple
 import boto3
 import dataclasses
 import enum
@@ -30,8 +30,13 @@ def _fzf_select(options, header=""):
     return stdout.decode('utf-8').strip()
 
 
-def _instance_configuration_region(ec2_client) -> str:
+def _instance_configuration_region(ec2_client, chosen_region: Optional[str]) -> str:
     regions = [region['RegionName'] for region in ec2_client.describe_regions()['Regions']]
+
+    if chosen_region:
+        if chosen_region not in regions:
+            raise ValueError(f'Region "{chosen_region}" not found in AWS regions {regions}')
+        return chosen_region
 
     # Make us-east-1 the top choice
     priority_region = 'us-east-1'
@@ -43,7 +48,7 @@ def _instance_configuration_region(ec2_client) -> str:
     return selected_region
 
 
-def _instance_configuration_ami(ec2_client) -> Tuple[str, LinuxDistro]:
+def _instance_configuration_ami(ec2_client, chosen_distro: Optional[str]) -> Tuple[str, LinuxDistro]:
     # Get the Amazon Linux AMI
     response = ec2_client.describe_images(
         Owners=['amazon'],
@@ -61,6 +66,13 @@ def _instance_configuration_ami(ec2_client) -> Tuple[str, LinuxDistro]:
                      and 'Pro' not in img['Description'] and 'Minimal' not in img['Description']]
     ubuntu_ami = sorted(ubuntu_images, key=lambda x: x['CreationDate'], reverse=True)[0]['ImageId']
 
+    if chosen_distro:
+        if chosen_distro == 'ubuntu':
+            return (ubuntu_ami, LinuxDistro.UBUNTU)
+        if chosen_distro == 'amazon-linux':
+            return (amazon_linux_ami, LinuxDistro.AMAZON_LINUX)
+        raise ValueError(f'Unexpected distro: {chosen_distro}')
+
     ami_options = [f'Amazon Linux AMI: {amazon_linux_ami}', f'Ubuntu AMI: {ubuntu_ami}']
     chosen_ami_desc = _fzf_select(ami_options)
     if 'Amazon Linux' in chosen_ami_desc:
@@ -75,12 +87,31 @@ def _instance_configuration_ami(ec2_client) -> Tuple[str, LinuxDistro]:
     return (chosen_ami, distro)
 
 
-def _instance_configuration_instance_type(ec2_client) -> str:
-    response = ec2_client.describe_instance_types()
-    instance_types = [
-        it for it in response['InstanceTypes']
-        if it['InstanceType'].startswith('c') or it['InstanceType'].startswith('m')
-    ]
+def _get_all_instance_types(ec2_client):
+    paginator = ec2_client.get_paginator('describe_instance_types')
+    iterator = paginator.paginate()
+
+    instance_types = []
+
+    for page in iterator:
+        for it in page['InstanceTypes']:
+            if it['InstanceType'].startswith(('c', 'm', 't')):
+                instance_types.append(it)
+
+    return instance_types
+
+
+def _instance_configuration_instance_type(ec2_client, chosen_instance_type: Optional[str]) -> str:
+    instance_types = _get_all_instance_types(ec2_client)
+
+    available_instance_types = [it['InstanceType'] for it in instance_types]
+
+    if chosen_instance_type:
+        if chosen_instance_type not in available_instance_types:
+            raise ValueError(f'Instance type "{chosen_instance_type}" not found in available instance types '
+                             f'{available_instance_types}')
+        return chosen_instance_type
+
     instance_details = [
         f'{it["InstanceType"]} - {it["VCpuInfo"]["DefaultVCpus"]} vCPUs, {it["MemoryInfo"]["SizeInMiB"]/1024} GiB RAM'
         for it in instance_types
@@ -91,15 +122,17 @@ def _instance_configuration_instance_type(ec2_client) -> str:
     return chosen_instance
 
 
-def instance_configuration() -> InstanceConfiguration:
+def instance_configuration(chosen_region: Optional[str],
+                           chosen_distro: Optional[str],
+                           chosen_instance_type: Optional[str]) -> InstanceConfiguration:
     """Return an InstanceConfiguration object with the settings chosen by the user."""
     session = boto3.session.Session()
     ec2_client = session.client('ec2')
 
-    region = _instance_configuration_region(ec2_client)
+    region = _instance_configuration_region(ec2_client, chosen_region)
     ec2_client_in_region = session.client('ec2', region_name=region)
 
-    ami, distro = _instance_configuration_ami(ec2_client_in_region)
-    chosen_instance = _instance_configuration_instance_type(ec2_client_in_region)
+    ami, distro = _instance_configuration_ami(ec2_client_in_region, chosen_distro)
+    chosen_instance = _instance_configuration_instance_type(ec2_client_in_region, chosen_instance_type)
 
     return InstanceConfiguration(region=region, ami=ami, instance_type=chosen_instance, distro=distro)

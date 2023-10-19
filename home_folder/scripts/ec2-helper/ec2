@@ -23,8 +23,11 @@ def aws_account_id() -> str:
 
 def create(args):
     name = args.name
+    region = args.region
+    distro = args.distro
+    instance_type = args.instance_type
     account_id = aws_account_id()
-    create_instance_configuration_folder(name, account_id)
+    create_instance_configuration_folder(name, account_id, region, distro, instance_type)
 
 
 def connect(args):
@@ -49,6 +52,13 @@ def main():
     # Subparser for the 'create' command
     create_parser = subparsers.add_parser('create', help='Create a new instance configuration.')
     create_parser.add_argument('name', type=str, help='Enter a unique name.')
+    create_parser.add_argument('-r', '--region', type=str, default=None, help='Specify the AWS region. \
+                                e.g. us-east-1, us-west-2, etc.')
+    create_parser.add_argument('-d', '--distro', type=str, default=None, choices=['ubuntu', 'amazon-linux'],
+                               help='Specify the distribution for the instance. Must be one of "ubuntu" \
+                               or "amazon-linux".')
+    create_parser.add_argument('-i', '--instance-type', type=str, default=None, help='Specify the AWS instance type. \
+                                e.g. t2.micro, m5.large, etc.')
     create_parser.set_defaults(func=create)
 
     # Subparser for the 'connect' command
