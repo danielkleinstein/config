@@ -170,6 +170,32 @@ function prompt_pwd --description 'Print the current working directory, shortene
                 end
 end
 
+function select-aws-profile
+    set profiles (grep '\[profile ' ~/.aws/config | sed -e 's/\[profile \(.*\)\]/\1/')
+
+    set current_profile $AWS_PROFILE
+
+    for profile in $profiles
+        if test "$profile" = "$current_profile"
+            echo "* $profile" >> /tmp/aws_highlighted_profiles.txt
+        else
+            echo "  $profile" >> /tmp/aws_highlighted_profiles.txt
+        end
+    end
+
+    set selected_profile (cat /tmp/aws_highlighted_profiles.txt | fzf | string trim)
+    rm /tmp/aws_highlighted_profiles.txt
+
+    if test -n "$selected_profile"
+        set -gx AWS_PROFILE $selected_profile
+    end
+
+    if not aws sts get-caller-identity >/dev/null 2>&1
+        aws sso login
+    end
+end
+
+
 set -x LESS_TERMCAP_mb (printf "\033[01;31m")
 set -x LESS_TERMCAP_md (printf "\033[01;31m")
 set -x LESS_TERMCAP_me (printf "\033[0m")
