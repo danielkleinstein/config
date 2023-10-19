@@ -216,4 +216,44 @@ alias taa="terraform apply -auto-approve"
 alias td="terraform destroy"
 alias tdd="terraform destroy -auto-approve"
 
+alias cat="bat"
+alias catd="bat --paging=never"
+alias catt="command cat"
+
+alias man="tldr"
+alias mann="command man"
+
+alias first "awk '{print \$1}'"
+alias second "awk '{print \$2}'"
+alias third "awk '{print \$3}'"
+alias fourth "awk '{print \$4}'"
+alias fifth "awk '{print \$5}'"
+alias sixth "awk '{print \$6}'"
+alias seventh "awk '{print \$7}'"
+alias eighth "awk '{print \$8}'"
+alias ninth "awk '{print \$9}'"
+alias tenth "awk '{print \$10}'"
+
+function line
+    if test (count $argv) -eq 1
+        sed -n "$argv[1]p"
+    else
+        echo "Please provide a valid line number."
+    end
+end
+
+alias linefirst "sed -n '1p'"
+alias linesecond "sed -n '2p'"
+alias linethird "sed -n '3p'"
+alias linefourth "sed -n '4p'"
+alias linefifth "sed -n '5p'"
+alias linesixth "sed -n '6p'"
+alias lineseventh "sed -n '7p'"
+alias lineeighth "sed -n '8p'"
+alias lineninth "sed -n '9p'"
+alias linetenth "sed -n '10p'"
+
+alias strip="awk '{\$1=\$1};1'"
+alias trim="strip"
+
 complete -c kubectl -a "(kubectl completion fish | sed 's/-F/_/g')"

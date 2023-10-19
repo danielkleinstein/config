@@ -57,11 +57,14 @@ fi
 
 echo -e " ${GREEN}Fish shell is now installed and set as the default shell for $ORIGINAL_USER.${NC}"
 
-UTILITIES=("python3" "python3-pip" "curl" "unzip" "golang" "vim" "tmux")
+UTILITIES=("python3" "python3-pip" "curl" "unzip" "golang" "vim" "tmux" "bat")
 for utility in "${UTILITIES[@]}"; do
     echo -e "${GREEN}Installing $utility...${NC}"
     $PACKAGE_MANAGER install $utility -y > /dev/null 2>&1
 done
+
+# Due to bat being installed as batcat in Ubuntu
+if [[ -e /usr/bin/batcat ]]; then mkdir -p ~/.local/bin && ln -s /usr/bin/batcat /usr/local/bin/bat; fi
 
 # Install afer utils - because it needs curl
 echo -e "${GREEN}Installing oh my fish...${NC}"
