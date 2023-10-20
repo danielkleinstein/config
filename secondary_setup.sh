@@ -34,4 +34,8 @@ for package in "${PYTHON_PACKAGES[@]}"; do
     pip3 install $package > /dev/null 2>&1
 done
 
+echo -e "${RED}Installing fzf...${NC}"
+git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+~/.fzf/install --all
+
 cp -r $SCRIPT_DIR/home_folder/. $HOME/

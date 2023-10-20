@@ -89,10 +89,6 @@ PLATFORM=$(uname -s)_$ARCH
 curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz" > /dev/null 2>&1
 tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp > /dev/null && rm eksctl_$PLATFORM.tar.gz
 
-echo -e "${GREEN}Installing fzf...${NC}"
-git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-~/.fzf/install
-
 echo -e "${GREEN}Installing aws-iam-authenticator...${NC}"
 curl -Lo aws-iam-authenticator https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.5.9/aws-iam-authenticator_0.5.9_linux_amd64 > /dev/null 2>&1
 chmod +x ./aws-iam-authenticator
