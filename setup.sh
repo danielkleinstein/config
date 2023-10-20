@@ -42,7 +42,7 @@ echo -e "${GREEN}Installing dialog...${NC}"
 $PACKAGE_MANAGER install dialog -y > /dev/null 2>&1
 
 echo -en "${GREEN}Installing fish shell...${NC}"
-$PACKAGE_MANAGER install fish -y > /dev/null
+$PACKAGE_MANAGER install fish -y > /dev/null 2>&1
 
 if ! grep -q "^/usr/bin/fish$" /etc/shells; then
     echo "/usr/bin/fish" | sudo tee -a /etc/shells
