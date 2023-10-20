@@ -9,6 +9,12 @@ else
     exit 1
 fi
 
+cat << EOF >> ~/.bashrc
+function status() {
+    tail -f /var/log/cloud-init-output.log
+}
+EOF
+
 $PACKAGE_MANAGER update -y
 $PACKAGE_MANAGER install git -y
 
