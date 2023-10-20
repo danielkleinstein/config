@@ -66,7 +66,7 @@ done
 # Due to bat being installed as batcat in Ubuntu
 if [[ -e /usr/bin/batcat ]]; then mkdir -p ~/.local/bin && ln -s /usr/bin/batcat /usr/local/bin/bat; fi
 
-# Install afer utils - because it needs curl
+# Install after utils - because it needs curl
 echo -e "${GREEN}Installing oh my fish...${NC}"
 curl https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install > omf-install 2>/dev/null
 fish omf-install --path=~/.local/share/omf --config=~/.config/omf --noninteractive > /dev/null
