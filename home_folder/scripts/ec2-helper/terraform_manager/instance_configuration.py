@@ -109,7 +109,7 @@ def _instance_configuration_instance_type(ec2_client, chosen_instance_type: Opti
     if chosen_instance_type:
         if chosen_instance_type not in available_instance_types:
             raise ValueError(f'Instance type "{chosen_instance_type}" not found in available instance types '
-                             f'{available_instance_types}')
+                             f'{sorted(available_instance_types)}')
         return chosen_instance_type
 
     instance_details = [

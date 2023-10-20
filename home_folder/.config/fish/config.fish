@@ -1,5 +1,5 @@
 if status is-interactive
-	clear -x
+    clear -x
 end
 
 alias .. "pushd .."
@@ -39,17 +39,17 @@ end
 function ex
     if test -f $argv
         switch (file --mime-type $argv -b)
-            case 'application/x-bzip2'
+            case application/x-bzip2
                 tar xvjf $argv
-            case 'application/x-gzip'
+            case application/x-gzip
                 tar xvzf $argv
-            case 'application/x-xz'
+            case application/x-xz
                 tar xvJf $argv
-            case 'application/zip'
+            case application/zip
                 unzip $argv
             case 'application/vnd.ms-cab-compressed'
                 cabextract $argv
-            case 'application/x-tar'
+            case application/x-tar
                 tar xvf $argv
             case '*'
                 echo "don't know how to extract '$argv'..."
@@ -65,7 +65,7 @@ end
 
 function copy
     for cmd in (history)
-        if test "$cmd" != "copy"
+        if test "$cmd" != copy
             save_output $cmd
             return
         end
@@ -106,7 +106,7 @@ function killport
 end
 
 function clast
-  history --max=1 | fish_clipboard_copy
+    history --max=1 | fish_clipboard_copy
 end
 
 function reload
@@ -114,60 +114,60 @@ function reload
 end
 
 function fish_prompt --description 'Write out the prompt'
-                 set -l last_pipestatus $pipestatus
-                 set -l normal (set_color normal)
+    set -l last_pipestatus $pipestatus
+    set -l normal (set_color normal)
 
-                 # Color the prompt differently when we're root
-                 set -l color_cwd $fish_color_cwd
-                 set -l prefix
-                 set -l suffix '>'
-                 if contains -- $USER root toor
-                     if set -q fish_color_cwd_root
-                         set color_cwd $fish_color_cwd_root
-                     end
-                     set suffix '#'
-                 end
+    # Color the prompt differently when we're root
+    set -l color_cwd $fish_color_cwd
+    set -l prefix
+    set -l suffix '>'
+    if contains -- $USER root toor
+        if set -q fish_color_cwd_root
+            set color_cwd $fish_color_cwd_root
+        end
+        set suffix '#'
+    end
 
-                 # If we're running via SSH, change the host color.
-                 set -l color_host $fish_color_host
-                 if set -q SSH_TTY
-                     set color_host $fish_color_host_remote
-                 end
+    # If we're running via SSH, change the host color.
+    set -l color_host $fish_color_host
+    if set -q SSH_TTY
+        set color_host $fish_color_host_remote
+    end
 
-                 # Write pipestatus
-                 set -l prompt_status (__fish_print_pipestatus " [" "]" "|" (set_color $fish_color_status) (set_color --bold $fish_color_status) $last_pipestatus)
+    # Write pipestatus
+    set -l prompt_status (__fish_print_pipestatus " [" "]" "|" (set_color $fish_color_status) (set_color --bold $fish_color_status) $last_pipestatus)
 
-                 echo -n -s (set_color $fish_color_user) $normal (set_color $color_cwd) (prompt_pwd) $normal (fish_vcs_prompt) $normal $prompt_status $suffix " "
+    echo -n -s (set_color $fish_color_user) $normal (set_color $color_cwd) (prompt_pwd) $normal (fish_vcs_prompt) $normal $prompt_status $suffix " "
 end
 
 set fish_greeting
 
 function prompt_pwd --description 'Print the current working directory, shortened to fit the prompt'
-                #set -l options h/help
-                #argparse -n prompt_pwd --max-args=0 $options -- $argv
-                #or return
+    #set -l options h/help
+    #argparse -n prompt_pwd --max-args=0 $options -- $argv
+    #or return
 
-                if set -q _flag_help
-                    __fish_print_help prompt_pwd
-                    return 0
-                end
+    if set -q _flag_help
+        __fish_print_help prompt_pwd
+        return 0
+    end
 
-                # This allows overriding fish_prompt_pwd_dir_length from the outside (global or universal) without leaking it
-                set -q fish_prompt_pwd_dir_length
-                or set -l fish_prompt_pwd_dir_length 1
+    # This allows overriding fish_prompt_pwd_dir_length from the outside (global or universal) without leaking it
+    set -q fish_prompt_pwd_dir_length
+    or set -l fish_prompt_pwd_dir_length 1
 
-                # Replace $HOME with "~"
-                set -l realhome /local/home/dkl
-                set -l realhome2 ~
-                set -l tmp (string replace -r '^'"$realhome"'($|/)' '~$1' $PWD)
-                set -l tmp2 (string replace -r '^'"$realhome2"'($|/)' '~$1' $tmp)
+    # Replace $HOME with "~"
+    set -l realhome /local/home/dkl
+    set -l realhome2 ~
+    set -l tmp (string replace -r '^'"$realhome"'($|/)' '~$1' $PWD)
+    set -l tmp2 (string replace -r '^'"$realhome2"'($|/)' '~$1' $tmp)
 
-                if [ $fish_prompt_pwd_dir_length -eq 0 ]
-                    echo $tmp2
-                else
-                    # Shorten to at most $fish_prompt_pwd_dir_length characters per directory
-                    string replace -ar '(\.?[^/]{'"$fish_prompt_pwd_dir_length"'})[^/]*/' '$1/' $tmp2
-                end
+    if [ $fish_prompt_pwd_dir_length -eq 0 ]
+        echo $tmp2
+    else
+        # Shorten to at most $fish_prompt_pwd_dir_length characters per directory
+        string replace -ar '(\.?[^/]{'"$fish_prompt_pwd_dir_length"'})[^/]*/' '$1/' $tmp2
+    end
 end
 
 function select-aws-profile
@@ -177,9 +177,9 @@ function select-aws-profile
 
     for profile in $profiles
         if test "$profile" = "$current_profile"
-            echo "* $profile" >> /tmp/aws_highlighted_profiles.txt
+            echo "* $profile" >>/tmp/aws_highlighted_profiles.txt
         else
-            echo "  $profile" >> /tmp/aws_highlighted_profiles.txt
+            echo "  $profile" >>/tmp/aws_highlighted_profiles.txt
         end
     end
 
@@ -216,8 +216,10 @@ alias taa="terraform apply -auto-approve"
 alias td="terraform destroy"
 alias tdd="terraform destroy -auto-approve"
 
-alias cat="bat"
-alias catd="bat --paging=never"
+if type -q bat
+    alias cat="bat"
+    alias catd="bat --paging=never"
+end
 alias catt="command cat"
 
 alias man="tldr"
