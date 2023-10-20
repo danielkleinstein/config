@@ -9,11 +9,12 @@ else
     exit 1
 fi
 
-cat << EOF >> ~/.bashrc
+cat << EOF >> /etc/profile.d/status.sh
 function status() {
     tail -f /var/log/cloud-init-output.log
 }
 EOF
+chmod +x /etc/profile.d/status.sh
 
 $PACKAGE_MANAGER update -y
 $PACKAGE_MANAGER install git -y
