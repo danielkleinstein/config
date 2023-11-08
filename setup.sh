@@ -48,11 +48,11 @@ if ! grep -q "^/usr/bin/fish$" /etc/shells; then
     echo "/usr/bin/fish" | sudo tee -a /etc/shells
 fi
 
-chsh -s /usr/bin/fish $ORIGINAL_USER
+chsh -s /usr/bin/fish $ORIGINAL_USER > /dev/null 2>&1
 if id "ec2-user" &>/dev/null; then
-    chsh -s /usr/bin/fish "ec2-user"
+    chsh -s /usr/bin/fish "ec2-user" > /dev/null 2>&1
 elif id "ubuntu" &>/dev/null; then
-    chsh -s /usr/bin/fish "ubuntu"
+    chsh -s /usr/bin/fish "ubuntu" > /dev/null 2>&1
 fi
 
 echo -e " ${GREEN}Fish shell is now installed and set as the default shell for $ORIGINAL_USER.${NC}"

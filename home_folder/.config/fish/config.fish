@@ -171,10 +171,22 @@ function prompt_pwd --description 'Print the current working directory, shortene
 end
 
 function select-aws-profile
+    if set -q argv[1]
+        set -gx AWS_PROFILE $argv[1]
+        # Check if the user is authenticated, and if not, run SSO login
+        if not aws sts get-caller-identity >/dev/null 2>&1
+            aws sso login
+        end
+        return
+    end
+
+    # Extract profiles from ~/.aws/config
     set profiles (grep '\[profile ' ~/.aws/config | sed -e 's/\[profile \(.*\)\]/\1/')
 
+    # Determine the current AWS profile
     set current_profile $AWS_PROFILE
 
+    # Highlight the current profile in the selection list
     for profile in $profiles
         if test "$profile" = "$current_profile"
             echo "* $profile" >>/tmp/aws_highlighted_profiles.txt
@@ -183,15 +195,53 @@ function select-aws-profile
         end
     end
 
+    # Use fzf to select a profile
     set selected_profile (cat /tmp/aws_highlighted_profiles.txt | fzf | string trim)
     rm /tmp/aws_highlighted_profiles.txt
 
+    # Remove asterisk prefix if it exists
+    set selected_profile (echo $selected_profile | sed 's/^\* //')
+
+    # If a profile was selected, set it as the new AWS_PROFILE
     if test -n "$selected_profile"
         set -gx AWS_PROFILE $selected_profile
     end
 
+    # Check if the user is authenticated, and if not, run SSO login
     if not aws sts get-caller-identity >/dev/null 2>&1
         aws sso login
+    end
+end
+
+function select-eks-cluster
+    set -l clusters (aws eks list-clusters | jq -r '.clusters[]')
+
+    if not set -q clusters[1]
+        echo "No EKS clusters found."
+        return 1
+    end
+
+    set -l current_context (kubectl config current-context)
+
+    for cluster in $clusters
+        if test "$cluster" = "$current_context"
+            echo "* $cluster" >>/tmp/eks_highlighted_clusters.txt
+        else
+            echo "  $cluster" >>/tmp/eks_highlighted_clusters.txt
+        end
+    end
+
+    set -l selected_cluster (cat /tmp/eks_highlighted_clusters.txt | fzf | string trim)
+    rm /tmp/eks_highlighted_clusters.txt
+
+    set selected_cluster (echo $selected_cluster | sed 's/^\* //')
+
+    if test -n "$selected_cluster"
+        aws eks update-kubeconfig --name $selected_cluster
+        echo "Switched to EKS cluster '$selected_cluster'."
+    else
+        echo "No EKS cluster selected."
+        return 1
     end
 end
 
