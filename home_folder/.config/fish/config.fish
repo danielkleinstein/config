@@ -214,34 +214,30 @@ function select-aws-profile
 end
 
 function select-eks-cluster
-    set -l clusters (aws eks list-clusters | jq -r '.clusters[]')
+    set current_context (kubectl config current-context 2>/dev/null)
 
-    if not set -q clusters[1]
-        echo "No EKS clusters found."
-        return 1
-    end
-
-    set -l current_context (kubectl config current-context)
+    set clusters (aws eks list-clusters --output text --query 'clusters[*]' | tr "\t" "\n")
 
     for cluster in $clusters
-        if test "$cluster" = "$current_context"
+        set cluster_arn (aws eks describe-cluster --name $cluster --query 'cluster.arn' --output text)
+
+        if test "$current_context" = "$cluster_arn"
             echo "* $cluster" >>/tmp/eks_highlighted_clusters.txt
         else
             echo "  $cluster" >>/tmp/eks_highlighted_clusters.txt
         end
     end
 
-    set -l selected_cluster (cat /tmp/eks_highlighted_clusters.txt | fzf | string trim)
+    set selected_cluster (cat /tmp/eks_highlighted_clusters.txt | fzf | string trim)
     rm /tmp/eks_highlighted_clusters.txt
 
-    set selected_cluster (echo $selected_cluster | sed 's/^\* //')
+    set selected_cluster (string replace -r '^\* ' '' -- $selected_cluster)
 
     if test -n "$selected_cluster"
-        aws eks update-kubeconfig --name $selected_cluster
-        echo "Switched to EKS cluster '$selected_cluster'."
+        aws eks update-kubeconfig --name $selected_cluster >/dev/null
+        echo "Switched to EKS cluster: $selected_cluster"
     else
-        echo "No EKS cluster selected."
-        return 1
+        echo "No cluster was selected."
     end
 end
 
