@@ -10,6 +10,8 @@ cd $SCRIPT_DIR
 
 if command -v apt > /dev/null 2>&1; then
     PACKAGE_MANAGER="apt-get"
+    # Necessary for latest version of Fish
+    sudo apt-add-repository ppa:fish-shell/release-3
 elif command -v yum > /dev/null 2>&1; then
     PACKAGE_MANAGER="yum"
 
@@ -57,7 +59,7 @@ fi
 
 echo -e " ${GREEN}Fish shell is now installed and set as the default shell for $ORIGINAL_USER.${NC}"
 
-UTILITIES=("python3" "python3-pip" "curl" "unzip" "golang" "vim" "tmux" "bat")
+UTILITIES=("python3" "python3-pip" "curl" "unzip" "golang" "vim" "tmux" "bat" "jq")
 for utility in "${UTILITIES[@]}"; do
     echo -e "${GREEN}Installing $utility...${NC}"
     $PACKAGE_MANAGER install $utility -y > /dev/null 2>&1
