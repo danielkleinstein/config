@@ -96,9 +96,6 @@ curl -Lo aws-iam-authenticator https://github.com/kubernetes-sigs/aws-iam-authen
 chmod +x ./aws-iam-authenticator
 mv ./aws-iam-authenticator /usr/local/bin/
 
-echo -e "${GREEN}Removing lynx...${NC}"
-$PACKAGE_MANAGER remove lynx -y > /dev/null 2>&1
-
 # Use SUDO_USER if available, otherwise default to current user.
 ORIGINAL_USER=${SUDO_USER:-$(id -un)}
 SKIP_OVERRIDE_FLAG_CHECK=false
