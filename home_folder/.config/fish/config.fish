@@ -218,6 +218,8 @@ function select-eks-cluster
 
     set clusters (aws eks list-clusters --output text --query 'clusters[*]' | tr "\t" "\n")
 
+    echo -n "" >/tmp/eks_highlighted_clusters.txt
+
     for cluster in $clusters
         set cluster_arn (aws eks describe-cluster --name $cluster --query 'cluster.arn' --output text)
 
@@ -238,6 +240,26 @@ function select-eks-cluster
         echo "Switched to EKS cluster: $selected_cluster"
     else
         echo "No cluster was selected."
+    end
+end
+
+function select-k8s-namespace
+    set namespaces (kubectl get namespaces --no-headers -o custom-columns=":metadata.name")
+
+    echo -n "" >/tmp/k8s_namespaces.txt
+
+    for ns in $namespaces
+        echo $ns >>/tmp/k8s_namespaces.txt
+    end
+
+    set selected_namespace (cat /tmp/k8s_namespaces.txt | fzf | string trim)
+    rm /tmp/k8s_namespaces.txt
+
+    if test -n "$selected_namespace"
+        kubectl config set-context --current --namespace=$selected_namespace >/dev/null
+        echo "Switched to namespace: $selected_namespace"
+    else
+        echo "No namespace was selected."
     end
 end
 
