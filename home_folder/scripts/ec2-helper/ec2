@@ -9,6 +9,8 @@ from terraform_manager.manager_connect import connect_instance_configuration_fol
 from terraform_manager.manager_create import create_instance_configuration_folder
 from terraform_manager.manager_destroy import destroy_instance_configuration_folder
 from terraform_manager.manager_list import list_instance_configuration_folder
+from terraform_manager.manager_sync import sync_ec2_instances
+from terraform_manager.manager_vscode import vscode_instance_configuration_folder
 
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -17,8 +19,8 @@ os.chdir(script_dir)
 
 def aws_account_id() -> str:
     session = boto3.session.Session()
-    sts_client = session.client('sts')
-    return sts_client.get_caller_identity()['Account']
+    sts_client = session.client("sts")
+    return sts_client.get_caller_identity()["Account"]
 
 
 def create(args):
@@ -27,16 +29,31 @@ def create(args):
     distro = args.distro
     instance_type = args.instance_type
     account_id = aws_account_id()
-    create_instance_configuration_folder(name, account_id, region, distro, instance_type)
+    create_instance_configuration_folder(
+        name, account_id, region, distro, instance_type
+    )
 
 
 def connect(args):
     name = args.name
-    connect_instance_configuration_folder(name)
+    print_command = args.print_command
+    connect_instance_configuration_folder(name, print_command)
 
 
-def list_configs(_):
-    list_instance_configuration_folder()
+def sync(args):
+    region = args.region
+    sync_ec2_instances(region)
+
+
+def vscode(args):
+    name = args.name
+    folder = args.folder
+    vscode_instance_configuration_folder(name, folder)
+
+
+def list_configs(args):
+    names_only = args.names_only
+    list_instance_configuration_folder(names_only)
 
 
 def destroy(args):
@@ -45,35 +62,110 @@ def destroy(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='CLI for managing AWS instances.')
+    parser = argparse.ArgumentParser(description="CLI for managing AWS instances.")
 
     subparsers = parser.add_subparsers()
 
     # Subparser for the 'create' command
-    create_parser = subparsers.add_parser('create', help='Create a new instance configuration.')
-    create_parser.add_argument('name', type=str, help='Enter a unique name.')
-    create_parser.add_argument('-r', '--region', type=str, default=None, help='Specify the AWS region. \
-                                e.g. us-east-1, us-west-2, etc.')
-    create_parser.add_argument('-d', '--distro', type=str, default=None, choices=['ubuntu', 'amazon-linux'],
-                               help='Specify the distribution for the instance. Must be one of "ubuntu" \
-                               or "amazon-linux".')
-    create_parser.add_argument('-i', '--instance-type', type=str, default=None, help='Specify the AWS instance type. \
-                                e.g. t2.micro, m5.large, etc.')
+    create_parser = subparsers.add_parser(
+        "create", help="Create a new instance configuration."
+    )
+    create_parser.add_argument("name", type=str, help="Enter a unique name.")
+    create_parser.add_argument(
+        "-r",
+        "--region",
+        type=str,
+        default=None,
+        help="Specify the AWS region. \
+                                e.g. us-east-1, us-west-2, etc.",
+    )
+    create_parser.add_argument(
+        "-d",
+        "--distro",
+        type=str,
+        default=None,
+        choices=["ubuntu", "amazon-linux"],
+        help='Specify the distribution for the instance. Must be one of "ubuntu" \
+                               or "amazon-linux".',
+    )
+    create_parser.add_argument(
+        "-i",
+        "--instance-type",
+        type=str,
+        default=None,
+        help="Specify the AWS instance type. \
+                                e.g. t2.micro, m5.large, etc.",
+    )
     create_parser.set_defaults(func=create)
 
     # Subparser for the 'connect' command
-    connect_parser = subparsers.add_parser('connect', help='Connect to an instance.')
-    connect_parser.add_argument('name', type=str, help='Enter the name of an instance created with the create command.')
+    connect_parser = subparsers.add_parser(
+        "connect", aliases=["ssh"], help="Connect to an instance."
+    )
+    connect_parser.add_argument(
+        "name",
+        type=str,
+        help="Enter the name of an instance created with the create command.",
+    )
+    connect_parser.add_argument(
+        "-p",
+        "--print-command",
+        action="store_true",
+        help="Print out the ssh command only.",
+        default=False,
+    )
     connect_parser.set_defaults(func=connect)
 
     # Subparser for the 'list' command
-    list_parser = subparsers.add_parser('list', help='List all instance configurations.')
+    list_parser = subparsers.add_parser(
+        "list", aliases=["ls"], help="List all instance configurations."
+    )
+    list_parser.add_argument(
+        "-n",
+        "--names-only",
+        action="store_true",
+        help="Print out names only.",
+        default=False,
+    )
     list_parser.set_defaults(func=list_configs)
 
     # Subparser for the 'destroy' command
-    destroy_parser = subparsers.add_parser('destroy', help='Destroy an instance configuration.')
-    destroy_parser.add_argument('name', type=str, help='Enter the name of an instance created with the create command.')
+    destroy_parser = subparsers.add_parser(
+        "destroy", help="Destroy an instance configuration."
+    )
+    destroy_parser.add_argument(
+        "name",
+        type=str,
+        help="Enter the name of an instance created with the create command.",
+    )
     destroy_parser.set_defaults(func=destroy)
+
+    # Subparser for the 'vscode' command
+    vscode_parser = subparsers.add_parser("vscode", help="Open vscode to an instance.")
+    vscode_parser.add_argument(
+        "name",
+        type=str,
+        help="Enter the name of an instance created with the create command.",
+    )
+    vscode_parser.add_argument(
+        "folder",
+        type=str,
+        nargs="?",
+        help="Enter the folder to open (/home/{username} by default)",
+    )
+    vscode_parser.set_defaults(func=vscode)
+
+    # Subparser for the 'sync' command
+    sync_parser = subparsers.add_parser("sync", help="TODO")
+    sync_parser.add_argument(
+        "-r",
+        "--region",
+        type=str,
+        default=None,
+        help="Specify the AWS region. \
+                                e.g. us-east-1, us-west-2, etc.",
+    )
+    sync_parser.set_defaults(func=sync)
 
     if len(sys.argv) == 1:
         parser.print_help()
@@ -83,5 +175,5 @@ def main():
     args.func(args)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

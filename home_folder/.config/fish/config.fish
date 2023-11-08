@@ -209,7 +209,9 @@ alias kns="kubectl config set-context --current --namespace"
 alias kp="kubectl get pods"
 alias kp-nodes="kubectl get pod -o=custom-columns=NODE:.spec.nodeName,NAME:.metadata.name"
 alias kl="kubectl logs"
+alias kaf="kubectl apply -f"
 
+alias tf="terraform"
 alias ti="terraform init"
 alias ta="terraform apply"
 alias taa="terraform apply -auto-approve"
@@ -258,4 +260,99 @@ alias linetenth "sed -n '10p'"
 alias strip="awk '{\$1=\$1};1'"
 alias trim="strip"
 
-complete -c kubectl -a "(kubectl completion fish | sed 's/-F/_/g')"
+alias strip="awk '{\$1=\$1};1'"
+alias trim="strip"
+
+alias mkvenv='python3 -m venv venv; and source venv/bin/activate.fish'
+
+function s3p --argument-names path
+    # If an argument is provided, use it, otherwise read from stdin
+    if test "$path"
+        echo "s3://$path"
+        return
+    end
+    while read -l input
+        echo "s3://$input"
+    end
+end
+
+function s3cat
+    # If an argument is provided, use it, otherwise read from stdin
+    if set -q $argv[1]
+        set -f path $argv[1]
+    else
+        read -f path
+    end
+
+    # Check if the path starts with "s3://"
+    if not echo $path | string match -q "s3://*"
+        set path (echo $path | s3p)
+    end
+
+    # Use the AWS CLI to cat the file from the provided path
+    aws s3 cp $path - | cat
+end
+
+function s3-concat-and-cat
+    set -l s3_path "s3://"
+    for i in (seq (count $argv))
+        if [ $i -gt 1 ]
+            set s3_path $s3_path/
+        end
+        set s3_path $s3_path$argv[$i]
+    end
+
+    # Use AWS CLI to cat the file from S3
+    aws s3 cp $s3_path - | cat
+end
+
+function inner_s3ls
+    set bucket $argv[1]
+
+    if test -z "$bucket"
+        aws s3 ls | awk '{for (i=3; i<NF; i++) printf $i " "; print $NF}'
+    else
+        aws s3 ls $bucket | awk '{for (i=4; i<NF; i++) printf $i " "; print $NF}'
+    end
+end
+
+function s3ls --argument-names path
+    # If an argument is provided, use it, otherwise read from stdin
+    if test "$path"
+        set -f path $argv[1]
+    else
+        # Check if stdin is connected to a terminal or has data
+        if not command test -t 0
+            while read -l input
+                s3ls $input
+            end
+            return
+        else
+            # No argument and no stdin, run default command
+            inner_s3ls
+            return
+        end
+    end
+
+    # Check if the path starts with "s3://"
+    if not echo $path | string match -q "s3://*"
+        set path (echo $path | s3p)
+    end
+
+    inner_s3ls $path
+end
+
+function last_history_item
+    echo $history[1]
+end
+
+abbr -a !! --position anywhere --function last_history_item
+
+function vim_edit
+    echo vim $argv
+end
+
+abbr -a vim_edit_texts --position command --regex ".+\.txt|.+\.rs" --function vim_edit
+abbr 4DIRS --set-cursor=! "$(string join \n -- 'for dir in */' 'cd $dir' '!' 'cd ..' 'end')"
+
+kubectl completion fish | source

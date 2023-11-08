@@ -89,10 +89,15 @@ PLATFORM=$(uname -s)_$ARCH
 curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz" > /dev/null 2>&1
 tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp > /dev/null && rm eksctl_$PLATFORM.tar.gz
 
+mv /tmp/eksctl /usr/local/bin
+
 echo -e "${GREEN}Installing aws-iam-authenticator...${NC}"
 curl -Lo aws-iam-authenticator https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.5.9/aws-iam-authenticator_0.5.9_linux_amd64 > /dev/null 2>&1
 chmod +x ./aws-iam-authenticator
 mv ./aws-iam-authenticator /usr/local/bin/
+
+echo -e "${GREEN}Removing lynx...${NC}"
+$PACKAGE_MANAGER remove lynx -y > /dev/null 2>&1
 
 # Use SUDO_USER if available, otherwise default to current user.
 ORIGINAL_USER=${SUDO_USER:-$(id -un)}
