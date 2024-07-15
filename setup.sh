@@ -10,6 +10,7 @@ cd $SCRIPT_DIR
 
 if command -v apt > /dev/null 2>&1; then
     PACKAGE_MANAGER="apt-get"
+    $PACKAGE_MANAGER install software-properties-common
     # Necessary for latest version of Fish
     apt-add-repository ppa:fish-shell/release-3 -y
 elif command -v yum > /dev/null 2>&1; then

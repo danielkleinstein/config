@@ -140,6 +140,54 @@ function fish_prompt --description 'Write out the prompt'
     echo -n -s (set_color $fish_color_user) $normal (set_color $color_cwd) (prompt_pwd) $normal (fish_vcs_prompt) $normal $prompt_status $suffix " "
 end
 
+function fish_right_prompt
+    # Colors
+    set -l color_time (set_color $fish_color_autosuggestion 2>/dev/null; or set_color 555)
+    set -l color_aws (set_color purple)
+    set -l color_k8s (set_color cyan)
+    set -l color_k8s_namespace (set_color yellow)
+    set -l normal (set_color normal)
+
+    # Time
+    set -l time_val (date '+%H:%M:%S')
+    set -l time "$color_time$time_val$normal"
+
+    # AWS Profile
+    set -l aws_profile
+    if set -q AWS_PROFILE
+        set aws_profile "$color_aws$AWS_PROFILE$normal"
+    end
+
+    # Kubernetes Cluster and Namespace
+    set -l k8s_info
+    set -l k8s_context (kubectl config current-context 2>/dev/null)
+    set -l k8s_namespace (kubectl config view --minify --output 'jsonpath={..namespace}' 2>/dev/null)
+
+    # Extract just the cluster name if it's an ARN
+    set -l regex 'arn:aws:eks:[^:]+:[^:]+:cluster\/(.+)'
+    if string match -r $regex $k8s_context >/dev/null
+        set k8s_context (string match -r $regex $k8s_context)[2]
+    end
+
+    if test -n "$k8s_context"
+        set k8s_info "$color_k8s$k8s_context"
+        if test -n "$k8s_namespace"
+            set k8s_info "$k8s_info/$color_k8s_namespace$k8s_namespace"
+        end
+        set k8s_info "$k8s_info$normal"
+    end
+
+    # Combine components
+    set -l right_prompt
+    if test -n "$aws_profile"; or test -n "$k8s_info"
+        set right_prompt "$aws_profile $k8s_info | $time"
+    else
+        set right_prompt $time
+    end
+
+    echo $right_prompt
+end
+
 set fish_greeting
 
 function prompt_pwd --description 'Print the current working directory, shortened to fit the prompt'
@@ -213,6 +261,36 @@ function select-aws-profile
     end
 end
 
+function select-git-branch
+    if set -q argv[1]
+        git checkout $argv[1]
+        return
+    end
+
+    set branches (git branch | sed 's/\*//g' | sed 's/ //g')
+    set current_branch (git branch --show-current)
+
+    # Highlight the current branch in the selection list
+    for branch in $branches
+        if test "$branch" = "$current_branch"
+            echo "* $branch" >>/tmp/branches.txt
+        else
+            echo "  $branch" >>/tmp/branches.txt
+        end
+    end
+
+    # Use fzf to select a profile
+    set selected_branch (cat /tmp/branches.txt | fzf | string trim)
+    rm /tmp/branches.txt
+
+    # Remove asterisk prefix if it exists
+    set selected_branch (echo $selected_branch | sed 's/^\* //')
+
+    if test -n "$selected_branch"
+        git checkout $selected_branch
+    end
+end
+
 function select-eks-cluster
     set current_context (kubectl config current-context 2>/dev/null)
 
@@ -263,7 +341,7 @@ function select-k8s-namespace
     end
 end
 
-
+set -x EDITOR vim
 set -x LESS_TERMCAP_mb (printf "\033[01;31m")
 set -x LESS_TERMCAP_md (printf "\033[01;31m")
 set -x LESS_TERMCAP_me (printf "\033[0m")
@@ -273,11 +351,23 @@ set -x LESS_TERMCAP_ue (printf "\033[0m")
 set -x LESS_TERMCAP_us (printf "\033[01;32m")
 
 alias k=kubectl
-alias kns="kubectl config set-context --current --namespace"
+alias mk="kubectl config use-context minikube"
+alias kn="kubectl get nodes"
 alias kp="kubectl get pods"
 alias kp-nodes="kubectl get pod -o=custom-columns=NODE:.spec.nodeName,NAME:.metadata.name"
 alias kl="kubectl logs"
 alias kaf="kubectl apply -f"
+alias kn="kubectl config set-context --current --namespace"
+alias kgd="kubectl get deployments.apps"
+alias kgds="kubectl get daemonsets.apps"
+alias kgp="kubectl get pods"
+alias kgn="kubectl get nodes"
+alias kg="kubectl get"
+alias kd="kubectl describe"
+alias kdn="kubectl describe node"
+alias kgs="kubectl get svc"
+alias kdes="kubectl delete svc"
+alias kdp="kubectl describe pod"
 
 alias tf="terraform"
 alias ti="terraform init"
@@ -421,6 +511,85 @@ function vim_edit
 end
 
 abbr -a vim_edit_texts --position command --regex ".+\.txt|.+\.rs" --function vim_edit
-abbr 4DIRS --set-cursor=! "$(string join \n -- 'for dir in */' 'cd $dir' '!' 'cd ..' 'end')"
+abbr 4DIRS --set-cursor=! "(string join \n -- 'for dir in */' 'cd $dir' '!' 'cd ..' 'end')"
 
 kubectl completion fish | source
+
+function export-aws-creds -d "Export AWS credentials from aws sts assume-role output"
+    set -l json_output $argv
+
+    if test -z "$json_output"
+        echo "Please provide the JSON output from the 'aws sts assume-role' command."
+        return
+    end
+
+    set -l access_key_id (echo $json_output | jq -r '.Credentials.AccessKeyId')
+    set -l secret_access_key (echo $json_output | jq -r '.Credentials.SecretAccessKey')
+    set -l session_token (echo $json_output | jq -r '.Credentials.SessionToken')
+
+    set -g -x AWS_ACCESS_KEY_ID $access_key_id
+    set -g -x AWS_SECRET_ACCESS_KEY $secret_access_key
+    set -g -x AWS_SESSION_TOKEN $session_token
+
+    echo "AWS credentials exported successfully."
+end
+
+function unset-aws-creds
+    set -e AWS_ACCESS_KEY_ID
+    set -e AWS_SECRET_ACCESS_KEY
+    set -e AWS_SESSION_TOKEN
+end
+
+function stash-aws-creds
+    set -gx STASHED_AWS_ACCESS_KEY_ID $AWS_ACCESS_KEY_ID
+    set -gx STASHED_AWS_SECRET_ACCESS_KEY $AWS_SECRET_ACCESS_KEY
+    set -gx STASHED_AWS_SESSION_TOKEN $AWS_SESSION_TOKEN
+    unset-aws-creds
+end
+
+function pop-aws-creds
+    set -gx AWS_ACCESS_KEY_ID $STASHED_AWS_ACCESS_KEY_ID
+    set -gx AWS_SECRET_ACCESS_KEY $STASHED_AWS_SECRET_ACCESS_KEY
+    set -gx AWS_SESSION_TOKEN $STASHED_AWS_SESSION_TOKEN
+end
+
+alias aws-whoami="aws sts get-caller-identity"
+
+function git-cleanup-branches
+    # Ensure we are in a git repository
+    if not git rev-parse --is-inside-work-tree >/dev/null 2>&1
+        echo "This is not a git repository."
+        return 1
+    end
+
+    # Fetch latest changes
+    git fetch origin
+
+    # Get all branches except the current one
+    set -l branches (git branch | string trim | string replace '*' '')
+
+    for branch in $branches
+        # Allow Ctrl+C to interrupt the function
+        function handle_cancel --on-signal SIGINT
+            echo "Interrupted. Exiting..."
+            functions --erase handle_cancel
+            return 1
+        end
+
+        # Check if the branch is merged into main
+        if git branch --merged main | string match -q "$branch"
+            echo "Deleting merged branch: $branch"
+            git branch -d $branch
+        else
+            echo "Branch '$branch' is not merged into main. Delete? [y/N]"
+            read -l confirm
+            switch $confirm
+                case Y y
+                    git branch -D $branch > /dev/null
+            end
+        end
+
+        # Remove the signal handler after processing each branch
+        functions --erase handle_cancel
+    end
+end

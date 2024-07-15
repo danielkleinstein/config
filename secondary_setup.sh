@@ -36,6 +36,6 @@ done
 
 echo -e "${RED}Installing fzf...${NC}"
 git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-~/.fzf/install --all
+~/.fzf/install --all > /dev/null 2>&1
 
 cp -r $SCRIPT_DIR/home_folder/. $HOME/

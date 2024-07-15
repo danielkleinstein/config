@@ -150,5 +150,8 @@ def create_instance_configuration_folder(
 
     _create_config_folder(instance_path, instance_config)
 
-    time.sleep(10)
+    sleep_time = 30
+    print(f"Sleeping for {sleep_time} seconds to allow the instance to start...")
+    time.sleep(sleep_time)
+
     connect_instance_configuration_folder(name, False)
